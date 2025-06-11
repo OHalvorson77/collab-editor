@@ -22,9 +22,10 @@ const CollaborativeEditor = () => {
 
   return (
     <Editor
-      height="90vh"
+      style={{ paddingTop: '20vh' }}
+      height="100vh"
       defaultLanguage="javascript"
-      theme="vs-dark"
+      theme="vs-white"
       onMount={handleEditorDidMount}
     />
   );
