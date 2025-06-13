@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import Editor from '@monaco-editor/react';
-import * as Y from 'yjs';
 import { MonacoBinding } from 'y-monaco';
 import { ydoc, provider } from './socket';
 
@@ -21,13 +20,55 @@ const CollaborativeEditor = () => {
   }
 
   return (
-    <Editor
-      style={{ paddingTop: '20vh' }}
-      height="100vh"
-      defaultLanguage="javascript"
-      theme="vs-white"
-      onMount={handleEditorDidMount}
-    />
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Tabs row */}
+      <div style={{ height: '40px', background: '#eee', display: 'flex', alignItems: 'center', padding: '0 1rem' }}>
+        <div style={{ marginRight: '1rem' }}>file1.js</div>
+        <div style={{ marginRight: '1rem' }}>file2.js</div>
+        {/* Add more tabs as needed */}
+      </div>
+
+      {/* Editor + Terminal/Prompt Area */}
+      <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Editor */}
+        <div style={{ flexGrow: 1 }}>
+          <Editor
+            height="100%"
+            defaultLanguage="javascript"
+            theme="vs-white"
+            onMount={handleEditorDidMount}
+          />
+        </div>
+
+        {/* Terminal + Prompt Row */}
+        <div style={{ height: '25vh', display: 'flex', background: '#1e1e1e', color: 'white', fontFamily: 'monospace' }}>
+          {/* Terminal (left half) */}
+          <div style={{ width: '50%', padding: '1rem', borderRight: '1px solid #444' }}>
+            <div>> terminal output here</div>
+            <div>> running server...</div>
+          </div>
+
+          {/* Prompt area (right half) */}
+          <div style={{ width: '50%', padding: '1rem' }}>
+            <div style={{ marginBottom: '0.5rem' }}>Prompt / Input:</div>
+            <textarea
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#2e2e2e',
+                color: '#fff',
+                border: 'none',
+                resize: 'none',
+                padding: '0.5rem',
+                fontSize: '1rem',
+                fontFamily: 'monospace'
+              }}
+              placeholder="Type your code or prompt here..."
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
