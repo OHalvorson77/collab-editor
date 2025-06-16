@@ -1,10 +1,15 @@
 import React, { useState, useRef } from 'react';
 import SourceControlPanel from './SourceControlPanel';
+import IDELogo from '../images/IDELOGO.png';
 
-const FileExplorerSidebar = () => {
+const FileExplorerSidebar = ({ setOpenFileApp, setFileContents }) => {
   const [showSourceControl, setShowSourceControl] = useState(false);
   const [files, setFiles] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [recentFiles, setRecentFiles] = useState([]);
+  const [openFile, setOpenFile] = useState(null);
+
+
 
   const folderInputRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -19,58 +24,116 @@ const FileExplorerSidebar = () => {
     setFiles(selectedFiles.map((f) => f.name));
   };
 
+ const handleFileClick = async (file) => {
+  setOpenFile(file);
+  setOpenFileApp(file);
+  const content = await file.text();
+  setFileContents(content);
+  setRecentFiles((prev) => {
+    const updated = [file, ...prev.filter(f => f !== file)];
+    return updated.slice(0, 10); // Limit to last 10
+  });
+};
+
+
   const toggleDropdown = () => {
     setShowDropdown((prev) => !prev);
   };
 
+  // Converts list of file paths into a tree structure
+const buildFolderTree = (filePaths) => {
+  const root = {};
+
+  filePaths.forEach((path) => {
+    const parts = path.split('/');
+    let current = root;
+    parts.forEach((part, index) => {
+      if (!current[part]) {
+        current[part] = index === parts.length - 1 ? null : {};
+      }
+      current = current[part] || {};
+    });
+  });
+
+  return root;
+};
+
+const renderFolderTree = (tree, level = 0, currentPath = '') => {
+  return Object.entries(tree).map(([name, value]) => {
+    const isFolder = value !== null;
+    const fullPath = currentPath ? `${currentPath}/${name}` : name;
+
+    return (
+      <div
+        key={fullPath}
+        style={{
+          marginLeft: level * 16,
+          display: 'flex',
+          alignItems: 'center',
+          cursor: isFolder ? 'default' : 'pointer',
+        }}
+        onClick={!isFolder ? () => handleFileClick(fullPath) : undefined}
+      >
+        <span style={{ color: isFolder ? '#c586c0' : '#d4d4d4' }}>
+          {isFolder ? '📁' : '📄'} {name}
+        </span>
+        {isFolder && renderFolderTree(value, level + 1, fullPath)}
+      </div>
+    );
+  });
+
+
+};
+
+
   return (
     <div
       style={{
-        width: '300px',
-        backgroundColor: '#252526',
+        width: '280px',
+        backgroundColor: '#1e1e1e',
         padding: '1rem',
-        color: '#ccc',
-        borderLeft: '1px solid #444',
+        color: '#d4d4d4',
+        borderRight: '1px solid #333',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
+        fontFamily: 'Segoe UI, sans-serif',
+        height: '100vh',
+        overflow: 'hidden',
       }}
     >
-      {/* Header Row with Dropdown */}
+      {/* Header */}
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
+          justifyContent: 'space-between',
           marginBottom: '1rem',
         }}
       >
-        <h3 style={{ margin: 0 }}>📁 File Explorer</h3>
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-
-
-        <img
-  src="../images/IDELOGO.png"
-  alt="IDE Logo"
-  style={{
-    width: 30,
-    height: 30,
-    borderRadius: '50%',
-    marginRight: 8,
-    objectFit: 'cover',
-    cursor: 'default',
-  }}
-/>
-
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img
+            src={IDELogo}
+            alt="IDE Logo"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '4px',
+              marginRight: 8,
+              objectFit: 'cover',
+            }}
+          />
+          <h3 style={{ fontSize: '16px', margin: 0, color: '#dcdcaa' }}>Explorer</h3>
+        </div>
         <div style={{ position: 'relative' }}>
           <button
             onClick={toggleDropdown}
             style={{
               background: 'none',
               border: 'none',
-              color: '#ccc',
-              fontSize: '24px',
+              color: '#d4d4d4',
+              fontSize: '18px',
               cursor: 'pointer',
+              padding: '4px 8px',
             }}
           >
             ☰
@@ -82,40 +145,46 @@ const FileExplorerSidebar = () => {
                 position: 'absolute',
                 right: 0,
                 top: '30px',
-                backgroundColor: '#333',
-                border: '1px solid #555',
-                borderRadius: '4px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                backgroundColor: '#252526',
+                border: '1px solid #3c3c3c',
+                borderRadius: '6px',
                 zIndex: 10,
+                overflow: 'hidden',
               }}
             >
               <div
                 onClick={() => folderInputRef.current.click()}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 16px',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
+                  fontSize: '14px',
+                  borderBottom: '1px solid #3c3c3c',
+                  backgroundColor: '#2d2d2d',
+                  color: '#d4d4d4',
                 }}
               >
-                Open Folder
+                📂 Open Folder
               </div>
               <div
                 onClick={() => fileInputRef.current.click()}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 16px',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
+                  fontSize: '14px',
+                  backgroundColor: '#2d2d2d',
+                  color: '#d4d4d4',
                 }}
               >
-                Open File
+                📄 Open File
               </div>
             </div>
           )}
         </div>
       </div>
-      </div>
 
-      {/* Hidden File Inputs */}
+      {/* Hidden Inputs */}
       <input
         ref={folderInputRef}
         type="file"
@@ -133,36 +202,78 @@ const FileExplorerSidebar = () => {
         style={{ display: 'none' }}
       />
 
-      {/* File List */}
-      <ul style={{ fontSize: '14px', overflowY: 'auto', flex: 1 }}>
-        {files.map((file, i) => (
-          <li key={i} style={{ padding: '2px 0', color: '#aaa' }}>
-            {file}
-          </li>
-        ))}
-      </ul>
-      <div style={{ width: '100%', height: '2px', backgroundColor: 'black' }}></div>
+{/* Recently Opened Files */}
+<div style={{ marginBottom: '1rem' }}>
+  <h4 style={{ fontSize: '14px', color: '#dcdcaa', marginBottom: '8px' }}>
+    📄 Recently Opened
+  </h4>
+  {recentFiles.length > 0 ? (
+    recentFiles.map((file) => (
+      <div
+        key={file}
+        onClick={() => handleFileClick(file)}
+        style={{
+          cursor: 'pointer',
+          padding: '4px 8px',
+          backgroundColor: openFile === file ? '#2d2d2d' : 'transparent',
+          color: '#ffffff',
+        }}
+      >
+        {file.split('/').pop()}
+      </div>
+    ))
+  ) : (
+    <span style={{ color: '#777' }}>No files opened yet</span>
+  )}
+</div>
 
 
-      <h3 style={{ margin: 0 }}>🌳 Folder Tree Structure</h3>
-      <div style={{ width: '100%', height: '2px', backgroundColor: 'black' }}></div>
+      {/* Divider */}
+      <div
+        style={{
+          height: '1px',
+          backgroundColor: '#333',
+          margin: '8px 0',
+        }}
+      />
 
+      <h4 style={{ margin: '4px 0 8px', fontSize: '14px', color: '#9cdcfe' }}>
+  🌳 Folder Tree
+</h4>
+
+<div
+  style={{
+    maxHeight: '200px',
+    overflowY: 'auto',
+    marginBottom: '1rem',
+    fontSize: '13px',
+  }}
+>
+  {files.length > 0 ? (
+    renderFolderTree(buildFolderTree(files))
+  ) : (
+    <span style={{ color: '#777' }}>No folder opened</span>
+  )}
+</div>
+
+      {/* Source Control Toggle */}
       <button
         onClick={() => setShowSourceControl(!showSourceControl)}
         style={{
-          marginTop: '10px',
-          padding: '8px',
+          padding: '10px',
           backgroundColor: '#0e639c',
           color: 'white',
           border: 'none',
           borderRadius: '4px',
           cursor: 'pointer',
+          fontSize: '13px',
         }}
       >
         {showSourceControl ? 'Hide' : 'Show'} Source Control
       </button>
 
-      {showSourceControl && <SourceControlPanel />}
+      {/* Source Control Panel */}
+      {showSourceControl && <div style={{ marginTop: '1rem' }}><SourceControlPanel /></div>}
     </div>
   );
 };

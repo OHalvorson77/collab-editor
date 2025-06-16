@@ -1,10 +1,17 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect} from 'react';
 import Editor from '@monaco-editor/react';
 import { MonacoBinding } from 'y-monaco';
 import { ydoc, provider } from './socket';
 
-const CollaborativeEditor = () => {
+const CollaborativeEditor = ({ openFile, fileContents }) => {
   const editorRef = useRef(null);
+
+  useEffect(() => {
+  if (editorRef.current && fileContents !== null) {
+    const model = editorRef.current.getModel();
+    model.setValue(fileContents);
+  }
+}, [fileContents]);
 
   function handleEditorDidMount(monacoEditor, monaco) {
     editorRef.current = monacoEditor;
@@ -37,6 +44,7 @@ const CollaborativeEditor = () => {
             defaultLanguage="javascript"
             theme="vs-white"
             onMount={handleEditorDidMount}
+             value={fileContents}
           />
         </div>
 
