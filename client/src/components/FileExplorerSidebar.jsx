@@ -8,6 +8,8 @@ const FileExplorerSidebar = ({ setOpenFileApp, setFileContents }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [recentFiles, setRecentFiles] = useState([]);
   const [openFile, setOpenFile] = useState(null);
+  const [fileMap, setFileMap] = useState(new Map());
+
 
 
 
@@ -15,23 +17,36 @@ const FileExplorerSidebar = ({ setOpenFileApp, setFileContents }) => {
   const fileInputRef = useRef(null);
 
   const handleDirectoryChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setFiles(selectedFiles.map((f) => f.webkitRelativePath || f.name));
-  };
+  const selectedFiles = Array.from(e.target.files); // File objects
+
+  const map = new Map();
+  selectedFiles.forEach(file => {
+    const path = file.webkitRelativePath || file.name;
+    map.set(path, file);
+  });
+
+  setFiles([...map.keys()]);     // Store file paths (for rendering)
+  setFileMap(map);               // Store full file map
+};
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     setFiles(selectedFiles.map((f) => f.name));
   };
 
- const handleFileClick = async (file) => {
-  setOpenFile(file);
-  setOpenFileApp(file);
-  const content = await file.text();
+const handleFileClick = async (filePath) => {
+  const file = fileMap.get(filePath); // ✅ Get actual File object
+
+  if (!file) return console.warn(`File not found: ${filePath}`);
+
+  const content = await file.text(); // ✅ Safe now
+  setOpenFile(filePath);
+  setOpenFileApp(filePath);
   setFileContents(content);
+
   setRecentFiles((prev) => {
-    const updated = [file, ...prev.filter(f => f !== file)];
-    return updated.slice(0, 10); // Limit to last 10
+    const updated = [filePath, ...prev.filter(f => f !== filePath)];
+    return updated.slice(0, 10);
   });
 };
 
