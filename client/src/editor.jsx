@@ -5,6 +5,7 @@ import { ydoc, provider } from './socket';
 
 const CollaborativeEditor = ({ openFile, fileContents }) => {
   const editorRef = useRef(null);
+  const language = detectLanguage(openFile);
 
   useEffect(() => {
   if (editorRef.current && fileContents !== null) {
@@ -12,6 +13,29 @@ const CollaborativeEditor = ({ openFile, fileContents }) => {
     model.setValue(fileContents);
   }
 }, [fileContents]);
+
+const detectLanguage = (fileName) => {
+  if (!fileName) return 'plaintext';
+
+  const ext = fileName.split('.').pop().toLowerCase();
+  switch (ext) {
+    case 'js': return 'javascript';
+    case 'ts': return 'typescript';
+    case 'py': return 'python';
+    case 'java': return 'java';
+    case 'cpp':
+    case 'cc':
+    case 'cxx': return 'cpp';
+    case 'cs': return 'csharp';
+    case 'html': return 'html';
+    case 'css': return 'css';
+    case 'json': return 'json';
+    case 'md': return 'markdown';
+    case 'sh': return 'shell';
+    default: return 'plaintext';
+  }
+};
+
 
   function handleEditorDidMount(monacoEditor, monaco) {
     editorRef.current = monacoEditor;
@@ -41,7 +65,7 @@ const CollaborativeEditor = ({ openFile, fileContents }) => {
         <div style={{ flexGrow: 1 }}>
           <Editor
             height="100%"
-            defaultLanguage="javascript"
+            defaultLanguage={language}
             theme="vs-white"
             onMount={handleEditorDidMount}
              value={fileContents}
