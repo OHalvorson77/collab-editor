@@ -5,7 +5,6 @@ import { ydoc, provider } from './socket';
 
 const CollaborativeEditor = ({ openFile, fileContents }) => {
   const editorRef = useRef(null);
-  const language = detectLanguage(openFile);
 
   useEffect(() => {
   if (editorRef.current && fileContents !== null) {
@@ -35,6 +34,8 @@ const detectLanguage = (fileName) => {
     default: return 'plaintext';
   }
 };
+  const language = detectLanguage(openFile);
+
 
 
   function handleEditorDidMount(monacoEditor, monaco) {
@@ -69,6 +70,19 @@ const detectLanguage = (fileName) => {
             theme="vs-white"
             onMount={handleEditorDidMount}
              value={fileContents}
+              onChange={(value, ev) => {
+    const lastLines = value?.split('\n').slice(-10).join('\n'); // send last 10 lines
+    fetch('http://localhost:3001/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: lastLines }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        // display in UI or ghost text
+        console.log('Suggested code:', data.suggestion);
+      });
+  }}
           />
         </div>
 
