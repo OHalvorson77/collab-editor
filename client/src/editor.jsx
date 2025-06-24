@@ -93,7 +93,7 @@ const detectLanguage = (fileName) => {
   fetch('http://localhost:3001/ai-query', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: promptInput, code: fileContents }),
+    body: JSON.stringify({ line: promptInput, code: fileContents }),
   })
     .then(res => res.json())
     .then(data => {

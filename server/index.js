@@ -51,4 +51,23 @@ app.post('/exec', (req, res) => {
   });
 });
 
+app.post('/ai-query', async (req, res) => {
+  const { code, line } = req.body;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'system', content: `You are scoped to knowledge of the following code ${code}` }, {role: 'user', content: line}],
+      temperature: 0.2,
+      max_tokens: 60,
+    });
+
+    const suggestion = completion.choices[0].message.content.trim();
+    res.json({ suggestion });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Prediction failed' });
+  }
+});
+
 app.listen(3001, () => console.log('Server running on http://localhost:3001'));
