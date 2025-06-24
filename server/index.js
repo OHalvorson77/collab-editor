@@ -2,19 +2,22 @@ const express = require('express');
 const cors = require('cors');
 const { OpenAI } = require('openai'); // or use Hugging Face inference APIs
 require('dotenv').config();
+const { spawn } = require('child_process');
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const openai = new OpenAI({ apiKey: ''});
 
 app.post('/predict', async (req, res) => {
-  const { code } = req.body;
+  const { code, line } = req.body;
 
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: [{ role: 'user', content: `Complete the following code:\n\n${code}` }],
+      messages: [{ role: 'user', content: `Please return only completion of this line: ${line} and nothing else. Given context of the following code:\n\n${code}` }],
       temperature: 0.2,
       max_tokens: 60,
     });
@@ -25,6 +28,27 @@ app.post('/predict', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Prediction failed' });
   }
+});
+
+app.post('/exec', (req, res) => {
+  const { command } = req.body;
+  const shell = spawn(command, {
+    shell: true,
+    cwd: './your/project/folder' // Set your working directory here
+  });
+
+  let output = '';
+  shell.stdout.on('data', (data) => {
+    output += data.toString();
+  });
+
+  shell.stderr.on('data', (data) => {
+    output += data.toString();
+  });
+
+  shell.on('close', (code) => {
+    res.json({ output, code });
+  });
 });
 
 app.listen(3001, () => console.log('Server running on http://localhost:3001'));
