@@ -84,7 +84,27 @@ const detectLanguage = (fileName) => {
   }
 };
   const language = detectLanguage(openFile);
-  console.log('Detected language:', language); // ✅ Add this line
+  console.log('Detected language:', language);
+
+  const askAI = () => {
+  if (!promptInput.trim()) return;
+
+  setIsLoading(true);
+  fetch('http://localhost:3001/ai-query', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: promptInput, code: fileContents }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      setAiResponse(data.answer || 'No response from AI.');
+      setIsLoading(false);
+    })
+    .catch(err => {
+      setAiResponse(`Error: ${err.message}`);
+      setIsLoading(false);
+    });
+};
 
 
 
@@ -256,23 +276,45 @@ return (
         </div>
 
         {/* Prompt area (right half) - unchanged */}
-        <div style={{ width: '50%', padding: '1rem' }}>
-          <div style={{ marginBottom: '0.5rem' }}>Prompt / Input:</div>
-          <textarea
-            style={{
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#2e2e2e',
-              color: '#fff',
-              border: 'none',
-              resize: 'none',
-              padding: '0.5rem',
-              fontSize: '1rem',
-              fontFamily: 'monospace'
-            }}
-            placeholder="This is for something else..."
-          />
-        </div>
+        <div style={{ width: '50%', padding: '1rem', display: 'flex', flexDirection: 'column' }}>
+  <div style={{ marginBottom: '0.5rem' }}>Ask AI about your code:</div>
+  <textarea
+    value={promptInput}
+    onChange={(e) => setPromptInput(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        askAI();
+      }
+    }}
+    style={{
+      width: '100%',
+      height: '100px',
+      backgroundColor: '#2e2e2e',
+      color: '#fff',
+      border: 'none',
+      resize: 'none',
+      padding: '0.5rem',
+      fontSize: '1rem',
+      fontFamily: 'monospace'
+    }}
+    placeholder="Type your question here and press Enter..."
+  />
+
+  <div style={{
+    marginTop: '1rem',
+    padding: '1rem',
+    backgroundColor: '#1e1e1e',
+    color: '#0f0',
+    fontFamily: 'monospace',
+    height: 'calc(100% - 130px)',
+    overflowY: 'auto',
+    whiteSpace: 'pre-wrap',
+    borderRadius: '4px'
+  }}>
+    {isLoading ? 'Loading AI response...' : (aiResponse || 'AI response will appear here')}
+  </div>
+</div>
       </div>
     </div>
   </div>
