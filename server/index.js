@@ -10,7 +10,6 @@ app.use(cors());
 app.use(express.json());
 
 const openai = new OpenAI({ apiKey: ''});
-
 app.post('/predict', async (req, res) => {
   const { code, line } = req.body;
 
@@ -62,11 +61,30 @@ app.post('/ai-query', async (req, res) => {
       max_tokens: 60,
     });
 
-    const suggestion = completion.choices[0].message.content.trim();
-    res.json({ suggestion });
+    const answer = completion.choices[0].message.content.trim();
+    res.json({ answer });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Prediction failed' });
+    res.status(500).json({ error: 'Unable to answer right now, please try again' });
+  }
+});
+
+app.post('/ai-comment', async (req, res) => {
+  const { code} = req.body;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [{ role: 'system', content: `You provide one line comments given code` }, {role: 'user', content: code}],
+      temperature: 0.2,
+      max_tokens: 60,
+    });
+
+    const comment = completion.choices[0].message.content.trim();
+    res.json({ comment });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Unable to answer right now, please try again' });
   }
 });
 

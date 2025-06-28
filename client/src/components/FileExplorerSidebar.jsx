@@ -9,6 +9,8 @@ const FileExplorerSidebar = ({ setOpenFileApp, setFileContents }) => {
   const [recentFiles, setRecentFiles] = useState([]);
   const [openFile, setOpenFile] = useState(null);
   const [fileMap, setFileMap] = useState(new Map());
+  const [expandedFolders, setExpandedFolders] = useState(new Set());
+
 
 
 
@@ -73,32 +75,48 @@ const buildFolderTree = (filePaths) => {
   return root;
 };
 
+const toggleFolder = (path) => {
+  setExpandedFolders((prev) => {
+    const next = new Set(prev);
+    if (next.has(path)) next.delete(path);
+    else next.add(path);
+    return next;
+  });
+};
+
+/*
 const renderFolderTree = (tree, level = 0, currentPath = '') => {
   return Object.entries(tree).map(([name, value]) => {
     const isFolder = value !== null;
     const fullPath = currentPath ? `${currentPath}/${name}` : name;
+    const isExpanded = expandedFolders.has(fullPath);
 
     return (
-      <div
-        key={fullPath}
-        style={{
-          marginLeft: level * 16,
-          display: 'flex',
-          alignItems: 'center',
-          cursor: isFolder ? 'default' : 'pointer',
-        }}
-        onClick={!isFolder ? () => handleFileClick(fullPath) : undefined}
-      >
-        <span style={{ color: isFolder ? '#c586c0' : '#d4d4d4' }}>
-          {isFolder ? '📁' : '📄'} {name}
-        </span>
-        {isFolder && renderFolderTree(value, level + 1, fullPath)}
+      <div key={fullPath}>
+        <div
+          style={{
+            marginLeft: level * 16,
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer',
+            padding: '2px 0',
+            color: isFolder ? '#c586c0' : '#d4d4d4',
+          }}
+          onClick={() => {
+            if (isFolder) toggleFolder(fullPath);
+            else handleFileClick(fullPath);
+          }}
+        >
+          {isFolder ? (isExpanded ? '📂' : '📁') : '📄'} {name}
+        </div>
+
+        {isFolder && isExpanded && renderFolderTree(value, level + 1, fullPath)}
       </div>
     );
   });
-
-
 };
+*/
+
 
 
   return (

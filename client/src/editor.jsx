@@ -186,6 +186,45 @@ console.log('Last 10 lines from cursor (up):', last10FromCursor);
     .catch((err) => console.error('Prediction error:', err));
 };
 
+const addCommentAboveSelection = async () => {
+  const editor = editorRef.current;
+  if (!editor) return;
+
+  const selection = editor.getSelection();
+  const model = editor.getModel();
+
+  if (!selection || selection.isEmpty()) return;
+
+  const selectedText = model.getValueInRange(selection);
+  const startLineNumber = selection.startLineNumber;
+
+  const commentText = await fetchAIComment(selectedText);
+
+  model.pushEditOperations(
+    [],
+    [{
+      range: new window.monaco.Range(startLineNumber, 1, startLineNumber, 1),
+      text: commentText + '\n',
+    }],
+    () => null
+  );
+};
+
+const fetchAIComment = async (codeSnippet) => {
+  try {
+    const res = await fetch('http://localhost:3001/ai-comment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: codeSnippet })
+    });
+    const data = await res.json();
+    return data.comment || '//No comment generated.';
+  } catch (err) {
+    return '// COMMENT: [Error generating comment]';
+  }
+};
+
+
 
 
 
@@ -200,6 +239,16 @@ console.log('Last 10 lines from cursor (up):', last10FromCursor);
       new Set([monacoEditor]),
       provider.awareness
     );
+    monacoEditor.addAction({
+  id: 'add-comment-above',
+  label: 'Add Comment Above Selection',
+  keybindings: [
+    monaco.KeyCode.Quote
+  ],
+  run: () => {
+    addCommentAboveSelection();
+  }
+});
   }
 
 return (
@@ -307,7 +356,7 @@ return (
     backgroundColor: '#1e1e1e',
     color: '#0f0',
     fontFamily: 'monospace',
-    height: 'calc(100% - 130px)',
+    height: '300px',
     overflowY: 'auto',
     whiteSpace: 'pre-wrap',
     borderRadius: '4px'
