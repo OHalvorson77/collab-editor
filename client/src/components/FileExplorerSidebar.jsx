@@ -84,7 +84,7 @@ const toggleFolder = (path) => {
   });
 };
 
-/*
+
 const renderFolderTree = (tree, level = 0, currentPath = '') => {
   return Object.entries(tree).map(([name, value]) => {
     const isFolder = value !== null;
@@ -115,7 +115,7 @@ const renderFolderTree = (tree, level = 0, currentPath = '') => {
     );
   });
 };
-*/
+
 
 
 
