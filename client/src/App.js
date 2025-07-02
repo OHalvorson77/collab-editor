@@ -9,7 +9,7 @@ const [fileContents, setFileContents] = useState('');
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <div style={{ flex: 1 }}>
-        <CollaborativeEditor openFile={openFileApp} fileContents={fileContents} />
+        <CollaborativeEditor openFile={openFileApp} fileContents={fileContents}/>
       </div>
       <FileExplorerSidebar
         setOpenFileApp={setOpenFileApp}

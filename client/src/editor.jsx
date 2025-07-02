@@ -11,6 +11,16 @@ const [command, setCommand] = useState('');
 const [promptInput, setPromptInput] = useState('');
 const [aiResponse, setAiResponse] = useState('');
 const [isLoading, setIsLoading] = useState(false);
+const [recentFiles, setRecentFiles] = useState([]);
+
+useEffect(() => {
+  if (openFile) {
+    setRecentFiles(prev => {
+      const filtered = prev.filter(f => f !== openFile);
+      return [openFile, ...filtered].slice(0, 10); // max 10 recent
+    });
+  }
+}, [openFile]);
 
 
   useEffect(() => {
@@ -254,10 +264,30 @@ const fetchAIComment = async (codeSnippet) => {
 return (
   <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
     {/* Tabs row */}
-    <div style={{ height: '40px', background: '#eee', display: 'flex', alignItems: 'center', padding: '0 1rem' }}>
-      <div style={{ marginRight: '1rem' }}>file1.js</div>
-      <div style={{ marginRight: '1rem' }}>file2.js</div>
+    <div style={{
+  height: '40px',
+  background: '#eee',
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 1rem',
+  overflowX: 'auto'
+}}>
+  {recentFiles.map((file, index) => (
+    <div
+      key={index}
+      style={{
+        marginRight: '1rem',
+        padding: '0.25rem 0.5rem',
+        backgroundColor: file === openFile ? '#ccc' : '#fff',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontWeight: file === openFile ? 'bold' : 'normal',
+      }}
+    >
+      {file.split('/').pop()}
     </div>
+  ))}
+</div>
 
     {/* Editor + Terminal/Prompt Area */}
     <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>

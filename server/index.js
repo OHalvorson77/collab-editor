@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({ apiKey: ''});
+
 app.post('/predict', async (req, res) => {
   const { code, line } = req.body;
 
