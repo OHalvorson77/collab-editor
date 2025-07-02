@@ -12,6 +12,8 @@ const [promptInput, setPromptInput] = useState('');
 const [aiResponse, setAiResponse] = useState('');
 const [isLoading, setIsLoading] = useState(false);
 const [recentFiles, setRecentFiles] = useState([]);
+const [openFileTab, setOpenFileTab]=useState(openFile);
+const [fileContentTab, setFileContentsTab]=useState(fileContents);
 
 useEffect(() => {
   if (openFile) {
@@ -20,6 +22,7 @@ useEffect(() => {
       return [openFile, ...filtered].slice(0, 10); // max 10 recent
     });
   }
+  setOpenFileTab(openFile);
 }, [openFile]);
 
 
@@ -29,6 +32,7 @@ useEffect(() => {
     const model = editorRef.current.getModel();
     model.setValue(fileContents);
   }
+  setFileContentsTab(fileContents);
 }, [fileContents]);
 
 useEffect(() => {
@@ -93,7 +97,7 @@ const detectLanguage = (fileName) => {
     default: return 'plaintext';
   }
 };
-  const language = detectLanguage(openFile);
+  const language = detectLanguage(openFileTab);
   console.log('Detected language:', language);
 
   const askAI = () => {
@@ -234,6 +238,12 @@ const fetchAIComment = async (codeSnippet) => {
   }
 };
 
+function openTab (filePath) {
+
+  console.log(filePath);
+  
+};
+
 
 
 
@@ -275,10 +285,11 @@ return (
   {recentFiles.map((file, index) => (
     <div
       key={index}
+      onClick={openTab(file)}
       style={{
         marginRight: '1rem',
         padding: '0.25rem 0.5rem',
-        backgroundColor: file === openFile ? '#ccc' : '#fff',
+        backgroundColor: file === openFileTab ? '#ccc' : '#fff',
         borderRadius: '4px',
         cursor: 'pointer',
         fontWeight: file === openFile ? 'bold' : 'normal',
