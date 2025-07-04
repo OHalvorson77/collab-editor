@@ -304,14 +304,39 @@ return (
     <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       {/* Editor */}
       <div style={{ flexGrow: 1 }}>
-        <Editor
-          height="100%"
-          language={language}
-          theme="vs-white"
-          onMount={handleEditorDidMount}
-          value={fileContents}
-          onChange={handleEditorChange}
-        />
+          {openFileTab ? (
+    <Editor
+      height="100%"
+      language={language}
+      theme="vs-white"
+      onMount={handleEditorDidMount}
+      value={fileContentTab}
+      onChange={handleEditorChange}
+    />
+  ) : (
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      backgroundColor: '#f9f9f9',
+      color: '#333',
+      fontFamily: 'sans-serif',
+      padding: '2rem',
+      textAlign: 'center'
+    }}>
+      <h2>Welcome to my Collaborative Editor Made by Owen Halvorson</h2>
+      <p>Open a file to start collaborating in real-time.</p>
+      <ul style={{ textAlign: 'left', marginTop: '1rem' }}>
+        <li>Supports multiple programming languages (JS, Python, etc.)</li>
+        <li>AI-assisted code suggestions (press <strong>Ctrl</strong>)</li>
+        <li>Generate comments with <strong>'</strong> shortcut</li>
+        <li>Run shell commands in the terminal below</li>
+        <li>Ask the AI questions about your code in the prompt area</li>
+      </ul>
+    </div>
+  )}
       </div>
 
       {/* Terminal + Prompt Row */}
