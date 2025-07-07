@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { OpenAI } = require('openai'); // or use Hugging Face inference APIs
 require('dotenv').config();
-const { spawn } = require('child_process');
+const { exec } = require('child_process');
 
 
 const app = express();
@@ -35,22 +35,18 @@ app.post('/predict', async (req, res) => {
 
 app.post('/exec', (req, res) => {
   const { command } = req.body;
-  const shell = spawn(command, {
-    shell: true,
-    cwd: './your/project/folder' // Set your working directory here
-  });
 
-  let output = '';
-  shell.stdout.on('data', (data) => {
-    output += data.toString();
-  });
+  exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
+    const cwd = process.cwd();  // Get current working directory
 
-  shell.stderr.on('data', (data) => {
-    output += data.toString();
-  });
+    if (error) {
+      return res.status(500).json({ cwd, error: error.message });
+    }
+    if (stderr) {
+      return res.status(400).json({ cwd, error: stderr });
+    }
 
-  shell.on('close', (code) => {
-    res.json({ output, code });
+    res.json({ cwd, output: stdout });
   });
 });
 

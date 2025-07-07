@@ -14,6 +14,8 @@ const [isLoading, setIsLoading] = useState(false);
 const [recentFiles, setRecentFiles] = useState([]);
 const [openFileTab, setOpenFileTab]=useState(openFile);
 const [fileContentTab, setFileContentsTab]=useState(fileContents);
+const [currentDir, setCurrentDir] = useState('~');
+
 
 useEffect(() => {
   if (openFile) {
@@ -63,16 +65,28 @@ useEffect(() => {
   };
 }, []);
 
- const runCommand = () => {
+const runCommand = () => {
   fetch('http://localhost:3001/exec', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ command })
   })
-    .then((res) => res.json())
-    .then((data) => setTerminalOutput(data.output))
-    .catch((err) => setTerminalOutput(`Error: ${err.message}`));
+    .then(async (res) => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server responded with ${res.status}: ${text}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setTerminalOutput(data.output);
+      setCurrentDir(data.cwd || '~');  // Update the directory prompt
+    })
+    .catch((err) => {
+      setTerminalOutput(`Error: ${err.message}`);
+    });
 };
+
 
 
 
@@ -371,7 +385,7 @@ return (
             }}
             style={{ display: 'flex' }}
           >
-            <span style={{ marginRight: '0.5rem' }}>{'>'}</span>
+            <span style={{ marginRight: '0.5rem' }}>{`${currentDir} >`}</span>
             <input
               type="text"
               value={command}
