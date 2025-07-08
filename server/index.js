@@ -37,29 +37,34 @@ app.post('/predict', async (req, res) => {
 });
 
 app.post('/exec', (req, res) => {
-  const { command } = req.body;
+  const { command, cwd } = req.body;
 
+  // Use the cwd from the request if provided
+  const workingDir = cwd || process.cwd();
+
+  // Handle 'cd' internally to update the workingDir (same as before)
   if (command.startsWith('cd ')) {
     const targetDir = command.slice(3).trim();
     try {
-      currentDir = path.resolve(currentDir, targetDir);
-      return res.json({ cwd: currentDir, output: `Changed directory to ${currentDir}` });
+      const resolvedPath = path.resolve(workingDir, targetDir);
+      return res.json({ cwd: resolvedPath, output: `Changed directory to ${resolvedPath}` });
     } catch (err) {
-      return res.status(400).json({ cwd: currentDir, error: `Invalid path: ${err.message}` });
+      return res.status(400).json({ cwd: workingDir, error: `Invalid path: ${err.message}` });
     }
   }
 
-  exec(command, { cwd: currentDir }, (error, stdout, stderr) => {
+  exec(command, { cwd: workingDir }, (error, stdout, stderr) => {
     if (error) {
-      return res.status(500).json({ cwd: currentDir, error: error.message });
+      return res.status(500).json({ cwd: workingDir, error: error.message });
     }
     if (stderr) {
-      return res.status(400).json({ cwd: currentDir, error: stderr });
+      return res.status(400).json({ cwd: workingDir, error: stderr });
     }
 
-    res.json({ cwd: currentDir, output: stdout });
+    res.json({ cwd: workingDir, output: stdout });
   });
 });
+
 
 app.post('/ai-query', async (req, res) => {
   const { code, line } = req.body;

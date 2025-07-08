@@ -23,6 +23,10 @@ useEffect(() => {
       const filtered = prev.filter(f => f !== openFile);
       return [openFile, ...filtered].slice(0, 10); // max 10 recent
     });
+
+    const folderPath = openFile.split('/').slice(0, -1).join('/') || '.';
+    console.log('Setting initial working dir to:', folderPath);
+    setCurrentDir(folderPath);
   }
   setOpenFileTab(openFile);
 }, [openFile]);
@@ -69,7 +73,10 @@ const runCommand = () => {
   fetch('http://localhost:3001/exec', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ command })
+    body: JSON.stringify({ 
+      command,
+      cwd: currentDir  // ✅ Send the directory to use
+    })
   })
     .then(async (res) => {
       if (!res.ok) {
@@ -80,12 +87,13 @@ const runCommand = () => {
     })
     .then((data) => {
       setTerminalOutput(data.output);
-      setCurrentDir(data.cwd || '~');  // Update the directory prompt
+      setCurrentDir(data.cwd || '~');  // Update to whatever cwd backend reports
     })
     .catch((err) => {
       setTerminalOutput(`Error: ${err.message}`);
     });
 };
+
 
 
 
