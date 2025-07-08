@@ -3,6 +3,9 @@ const cors = require('cors');
 const { OpenAI } = require('openai'); // or use Hugging Face inference APIs
 require('dotenv').config();
 const { exec } = require('child_process');
+let currentDir = process.cwd();
+const path = require('path'); 
+
 
 
 const app = express();
@@ -36,17 +39,25 @@ app.post('/predict', async (req, res) => {
 app.post('/exec', (req, res) => {
   const { command } = req.body;
 
-  exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
-    const cwd = process.cwd();  // Get current working directory
+  if (command.startsWith('cd ')) {
+    const targetDir = command.slice(3).trim();
+    try {
+      currentDir = path.resolve(currentDir, targetDir);
+      return res.json({ cwd: currentDir, output: `Changed directory to ${currentDir}` });
+    } catch (err) {
+      return res.status(400).json({ cwd: currentDir, error: `Invalid path: ${err.message}` });
+    }
+  }
 
+  exec(command, { cwd: currentDir }, (error, stdout, stderr) => {
     if (error) {
-      return res.status(500).json({ cwd, error: error.message });
+      return res.status(500).json({ cwd: currentDir, error: error.message });
     }
     if (stderr) {
-      return res.status(400).json({ cwd, error: stderr });
+      return res.status(400).json({ cwd: currentDir, error: stderr });
     }
 
-    res.json({ cwd, output: stdout });
+    res.json({ cwd: currentDir, output: stdout });
   });
 });
 
