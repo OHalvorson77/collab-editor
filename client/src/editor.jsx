@@ -14,7 +14,9 @@ const [isLoading, setIsLoading] = useState(false);
 const [recentFiles, setRecentFiles] = useState([]);
 const [openFileTab, setOpenFileTab]=useState(openFile);
 const [fileContentTab, setFileContentsTab]=useState(fileContents);
-const [currentDir, setCurrentDir] = useState('~');
+const extractFolder = (filePath) => filePath.split(/[/\\]/).slice(0, -1).join('/') || '.';
+
+const [currentDir, setCurrentDir] = useState(() => openFile ? extractFolder(openFile) : '.');
 
 
 useEffect(() => {
