@@ -5,6 +5,8 @@ require('dotenv').config();
 const { exec } = require('child_process');
 let currentDir = process.cwd();
 const path = require('path'); 
+const fs = require('fs');
+
 
 
 
@@ -102,6 +104,25 @@ app.post('/ai-comment', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Unable to answer right now, please try again' });
   }
+});
+
+app.post('/save', (req, res) => {
+  const { filePath, content } = req.body;
+
+  if (!filePath || typeof content !== 'string') {
+    return res.status(400).send('Invalid request');
+  }
+
+  const fullPath = path.resolve('/your/project/root', filePath);
+
+  fs.writeFile(fullPath, content, 'utf8', (err) => {
+    if (err) {
+      console.error('Error saving file:', err);
+      return res.status(500).send('Error saving file');
+    }
+
+    res.send('File saved');
+  });
 });
 
 app.listen(3001, () => console.log('Server running on http://localhost:3001'));

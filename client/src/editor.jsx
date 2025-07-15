@@ -23,7 +23,7 @@ useEffect(() => {
   if (openFile) {
     setRecentFiles(prev => {
       const filtered = prev.filter(f => f !== openFile);
-      return [openFile, ...filtered].slice(0, 10); // max 10 recent
+      return [openFile, ...filtered].slice(0, 10); 
     });
 
     const folderPath = openFile.split('/').slice(0, -1).join('/') || '.';
@@ -268,6 +268,24 @@ function openTab (filePath) {
   
 };
 
+const saveFile = () => {
+  if (!editorRef.current || !openFileTab) return;
+
+  const content = editorRef.current.getValue();
+
+  fetch('http://localhost:3001/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filePath: openFileTab,
+      content: content
+    }),
+  })
+    .then(res => res.ok ? alert('✅ File saved!') : Promise.reject(res))
+    .catch(err => alert('❌ Save failed: ' + err));
+};
+
+
 
 
 
@@ -303,25 +321,45 @@ return (
   background: '#eee',
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'space-between', // 👈 distribute space between tabs and save button
   padding: '0 1rem',
   overflowX: 'auto'
 }}>
-  {recentFiles.map((file, index) => (
-    <div
-      key={index}
-      onClick={openTab(file)}
-      style={{
-        marginRight: '1rem',
-        padding: '0.25rem 0.5rem',
-        backgroundColor: file === openFileTab ? '#ccc' : '#fff',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontWeight: file === openFile ? 'bold' : 'normal',
-      }}
-    >
-      {file.split('/').pop()}
-    </div>
-  ))}
+  {/* Left: Tabs */}
+  <div style={{ display: 'flex', overflowX: 'auto' }}>
+    {recentFiles.map((file, index) => (
+      <div
+        key={index}
+        onClick={() => openTab(file)}
+        style={{
+          marginRight: '1rem',
+          padding: '0.25rem 0.5rem',
+          backgroundColor: file === openFileTab ? '#ccc' : '#fff',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: file === openFile ? 'bold' : 'normal',
+        }}
+      >
+        {file.split('/').pop()}
+      </div>
+    ))}
+  </div>
+
+  {/* Right: Save Button */}
+  <button
+    onClick={saveFile}
+    style={{
+      padding: '0.5rem 1rem',
+      backgroundColor: '#0e639c',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap'
+    }}
+  >
+    💾 Save File
+  </button>
 </div>
 
     {/* Editor + Terminal/Prompt Area */}
